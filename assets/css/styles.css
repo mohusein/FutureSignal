@@ -27,3 +27,29 @@
 .comment-byline{font-size:.86rem;color:var(--muted)}
 .comment-body{white-space:pre-wrap;overflow-wrap:anywhere}
 .moderation-actions{display:flex;gap:.75rem;flex-wrap:wrap;margin-top:1rem}
+
+
+/* Portfolio content */
+.profile-hero .hero-content{max-width:920px}
+.profile-hero h1{max-width:900px}
+.profile-hero p{max-width:70ch}
+.hero-tags{display:flex;flex-wrap:wrap;gap:.65rem;margin-top:2rem}
+.timeline{display:grid;gap:0;border-top:1px solid var(--line)}
+.timeline-item{display:grid;grid-template-columns:190px 1fr;gap:1.5rem;padding:1.45rem 0;border-bottom:1px solid var(--line)}
+.timeline-item h3{margin:0 0 .4rem}
+.timeline-item p{margin:.25rem 0;color:var(--muted);max-width:75ch}
+.timeline-date{font:500 .76rem var(--mono);letter-spacing:.06em;color:var(--accent);padding-top:.35rem}
+.skill-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1rem;margin-top:1.5rem}
+.skill-card{padding:1.2rem;border:1px solid var(--line);border-radius:12px;background:var(--panel)}
+.skill-card h3{font-size:1.05rem;margin:0 0 .5rem}
+.skill-card p{color:var(--muted);margin:0}
+.achievement-list{list-style:none;padding:0;margin:0;display:grid;gap:.8rem}
+.achievement-list li{padding:.75rem 0;border-bottom:1px solid var(--line)}
+.project-detail-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem}
+.project-detail{padding:1.5rem;border:1px solid var(--line);border-radius:14px;background:var(--panel)}
+.project-detail h2{font:600 1.65rem/1.25 var(--display);letter-spacing:-.03em;margin:.55rem 0}
+.project-detail h3{font-size:1rem;margin:1.2rem 0 .35rem}
+.project-detail li{margin:.4rem 0}
+.project-lede{font-size:1.08rem;color:var(--muted)}
+.card-links{display:grid;gap:.5rem;margin-top:1rem}
+@media(max-width:760px){.timeline-item{grid-template-columns:1fr;gap:.25rem}.skill-grid,.project-detail-grid{grid-template-columns:1fr}}
