@@ -36,16 +36,11 @@ Then visit `http://localhost:8000`. Stop the server with Ctrl+C.
 
 ## Publish with GitHub Pages
 
-The repository was not accessible in the initial workspace, so the repository name, default branch, Pages settings, final URL, and domain are not confirmed here.
+The site is in `mohusein/FutureSignal` on the `main` branch. GitHub Pages deployment has not been configured or verified, so the live URL and domain are not confirmed.
 
-Once the existing repository is connected:
+The repository is currently private. GitHub Free includes Pages for public repositories; publishing the site from this private repository requires an eligible paid plan. Making the repository public also makes its source code public, so keep its current visibility unless you choose otherwise.
 
-1. Inspect its default branch and existing files before copying these site files into it.
-2. Preserve repository-specific documentation and useful existing work.
-3. In GitHub, open **Settings → Pages** and select **Deploy from a branch**, the chosen default branch, and `/ (root)` if the site files are at the repository root.
-4. Wait for the Pages deployment to complete, then use the URL shown in Pages settings.
-5. Verify homepage, CSS, JavaScript, navigation, article links, and the 404 page at that URL.
-6. Only after confirming the URL, add canonical URLs, a sitemap with absolute URLs, and matching Open Graph metadata.
+To deploy, open **Settings → Pages** and select **Deploy from a branch**, `main`, and `/ (root)`. Wait for deployment, then use the URL shown there to verify the homepage, CSS, JavaScript, navigation, article links, and 404 page. Add canonical URLs, a sitemap with absolute URLs, and matching Open Graph metadata only after confirming the live URL.
 
 GitHub Pages project sites use a repository subpath, so keep links relative as they are now. Do not publish a guessed `USERNAME.github.io` URL or sitemap.
 
