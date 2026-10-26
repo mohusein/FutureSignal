@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+# Add a sitemap URL after the repository owner and published Pages URL are verified.
