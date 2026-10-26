@@ -10,7 +10,8 @@ Personal software engineering portfolio and interactive research publication for
 - `articles/` — three starter research articles with moderated comment sections
 - `auth.html`, `moderation.html` — account and moderator pages
 - `dashboard.html` — moderator-only aggregate article and comment analytics
-- `supabase/schema.sql` — database schema, row-level policies, and comment moderation rules
+- `reading-list.html` — a signed-in reader's private saved articles
+- `supabase/schema.sql` — database schema, row-level policies, moderation, reactions, bookmarks, and aggregate analytics
 - `assets/js/community.js`, `assets/js/supabase-config.js` — browser community features and public Supabase configuration
 - `projects/index.html` — software and technical project portfolio
 - `assets/css/styles.css` — shared visual system and responsive layout
@@ -56,7 +57,7 @@ The static site uses Supabase Auth and Postgres. The repository contains placeho
 
 6. Sign in at `auth.html`, then open `moderation.html`. New comments are held as pending, and only approved comments appear publicly. You can approve or reject them from the moderation queue.
 
-Row-level security is enabled on community tables. The browser can read approved comments and a signed-in author's own pending comments; only moderator accounts can see the full queue or change comment status. Readers can edit a display name and private account bio from their signed-in panel. Display names are derived from authenticated account metadata, comment text is rendered as text, and the database rejects overlong or rapid repeated submissions.
+Row-level security is enabled on community tables. The browser can read approved comments and a signed-in author's own pending comments; only moderator accounts can see the full queue or change comment status. Readers can edit a display name and private account bio, react to articles, and keep a private reading list. Reaction totals are public aggregates; each reader can only see or manage their own reaction and bookmark rows. Comment text is rendered as text, and the database rejects overlong or rapid repeated submissions.
 
 The publishing dashboard is available at `dashboard.html` to moderator accounts only. It reports aggregate article views and comment counts. View data is stored as daily totals without IP addresses or visitor identifiers; the browser counts at most one view per article per tab session. The `article_daily_views` table has no direct public or client access; the dashboard uses a moderator-checked database function. Counts are indicative and can be affected by automated traffic.
 
