@@ -7,7 +7,10 @@ Personal website and a dependency-free, multipage technology research publicatio
 - `index.html` — publication homepage
 - `about.html` — mission and editorial method
 - `research/index.html` — searchable, category-filterable article archive
-- `articles/` — three individual research articles
+- `articles/` — three starter research articles with moderated comment sections
+- `auth.html`, `moderation.html` — account and moderator pages
+- `supabase/schema.sql` — database schema, row-level policies, and comment moderation rules
+- `assets/js/community.js`, `assets/js/supabase-config.js` — browser community features and public Supabase configuration
 - `projects/index.html` — project notebook with carefully scoped descriptions
 - `assets/css/styles.css` — shared visual system and responsive layout
 - `assets/js/main.js` — mobile navigation and archive filtering
@@ -33,6 +36,28 @@ Then visit `http://localhost:8000`. Stop the server with Ctrl+C.
 4. Add the article to the homepage if it should be featured.
 5. Use working primary/official references where possible. Keep research limitations and publication dates accurate.
 6. Check paths from the article folder (`../assets/...`) and links from the archive (`../articles/...`).
+
+## Enable accounts and moderated comments
+
+The static site uses Supabase Auth and Postgres. The repository contains placeholders only; sign-in and comments remain inactive until you connect a Supabase project.
+
+1. Create a Supabase project, then run `supabase/schema.sql` in its SQL Editor.
+2. In **Authentication → URL Configuration**, set the deployed site as the Site URL and add the exact `auth.html` URL (plus its preview/local equivalents) to the redirect allow list. Sign-up confirmation and password recovery return to this page.
+3. Keep email confirmation enabled. For production, configure your own SMTP provider in Supabase; its default email sender has strict low-volume limits.
+4. Open `assets/js/supabase-config.js` and set `url` to the project URL and `anonKey` to the public publishable/anon key. These values are intended for browser use; never put a service-role or secret key in this file.
+5. Create your account at `auth.html` and confirm the email. In the Supabase SQL Editor, grant that account moderator access by substituting the email used for your account:
+
+   ```sql
+   insert into public.site_moderators (user_id)
+   select id from auth.users where email = 'you@example.com'
+   on conflict (user_id) do nothing;
+   ```
+
+6. Sign in at `auth.html`, then open `moderation.html`. New comments are held as pending, and only approved comments appear publicly. You can approve or reject them from the moderation queue.
+
+Row-level security is enabled on both tables. The browser can read approved comments and a signed-in author’s own pending comments; only moderator accounts can see the full queue or change comment status. Display names are derived from the authenticated account, comment text is rendered as text, and the database rejects overlong or rapid repeated submissions.
+
+The three previously published works in the research archive link to their original publisher pages. Their full text is not copied into this repository. The submitted articles can be added as full FutureSignal pages when you provide the manuscript text and confirm it may be republished.
 
 ## Publish with GitHub Pages
 
