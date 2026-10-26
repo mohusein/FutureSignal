@@ -53,3 +53,27 @@
 .project-lede{font-size:1.08rem;color:var(--muted)}
 .card-links{display:grid;gap:.5rem;margin-top:1rem}
 @media(max-width:760px){.timeline-item{grid-template-columns:1fr;gap:.25rem}.skill-grid,.project-detail-grid{grid-template-columns:1fr}}
+.archive-tools{padding:1.2rem;margin:0 0 1.25rem;border:1px solid var(--line);background:var(--panel);border-radius:14px}
+.archive-search-label{display:block;margin-bottom:.45rem;font-weight:650}
+.archive-search{width:100%;min-height:48px;padding:.7rem .85rem;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--text)}
+.archive-search::placeholder{color:var(--muted)}
+.filter-row{display:flex;flex-wrap:wrap;gap:.55rem;margin-top:.9rem}
+.filter-button{border:1px solid var(--line);border-radius:999px;padding:.48rem .8rem;background:transparent;color:var(--muted);cursor:pointer}
+.filter-button:hover,.filter-button[aria-pressed=true]{border-color:var(--accent);color:var(--bg);background:var(--accent)}
+.archive-results{margin:.8rem 0 0;color:var(--muted);font-size:.88rem}
+.archive-grid .card[hidden]{display:none}
+.empty-state{padding:1.25rem;border:1px dashed var(--line);border-radius:10px;color:var(--muted)}
+.dashboard{max-width:var(--max)}
+.dashboard-heading{display:flex;align-items:end;justify-content:space-between;gap:2rem;margin-bottom:1.25rem}
+.dashboard-heading>div{max-width:68ch}
+.dashboard-heading p{color:var(--muted)}
+.metric-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:.8rem;margin:2rem 0}
+.metric-card{padding:1.1rem;border:1px solid var(--line);border-radius:12px;background:var(--panel)}
+.metric-card p{font:650 clamp(1.7rem,4vw,2.5rem)/1.1 var(--display);letter-spacing:-.05em;margin:.6rem 0 0}
+.dashboard-list-heading{margin-top:2.5rem}
+.dashboard-article-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.8rem}
+.dashboard-article-card{padding:1.15rem;border:1px solid var(--line);border-radius:12px;background:var(--panel2)}
+.dashboard-article-card h3{margin:0 0 .6rem;text-transform:capitalize;font-size:1.1rem}
+.dashboard-article-card p{margin:.3rem 0 1rem}
+.dashboard-article-card .read-link{text-decoration:none}
+@media(max-width:760px){.dashboard-heading{align-items:start;flex-direction:column;gap:.5rem}.metric-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.dashboard-article-list{grid-template-columns:1fr}}

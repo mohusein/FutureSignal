@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Publishing dashboard — Mulki Husein</title>
+  <meta name="description" content="Private publishing analytics and community overview for the FutureSignal site owner.">
+  <link rel="stylesheet" href="assets/css/styles.css">
+  <script src="assets/js/main.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+  <script src="assets/js/supabase-config.js" defer></script>
+  <script src="assets/js/community.js" defer></script>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site-header"><div class="wrap header-inner"><a class="brand" href="index.html"><span class="brand-mark">MH</span>Mulki<span>Husein</span></a><button class="menu-toggle" aria-expanded="false" aria-controls="primary-nav">Menu</button><nav class="nav" id="primary-nav" aria-label="Main navigation"><a href="research/index.html">Writing</a><a href="projects/index.html">Projects</a><a href="auth.html">Account</a></nav></div></header>
+<main id="main" class="section"><section class="wrap dashboard" data-dashboard>
+  <div class="dashboard-heading"><div><div class="eyebrow">Private site owner tools</div><h1 class="page-title">Publishing dashboard</h1><p>Track article readership and comment activity. Article content remains in the version-controlled site, while new community comments wait for approval.</p></div><button class="button secondary" type="button" data-dashboard-refresh>Refresh analytics</button></div>
+  <p class="status-message" data-supabase-status role="status" aria-live="polite">Connecting to the publishing service…</p>
+  <div data-dashboard-summary hidden>
+    <div class="metric-grid" aria-label="Publishing totals">
+      <article class="metric-card"><div class="eyebrow">All-time article views</div><p data-total-views>—</p></article>
+      <article class="metric-card"><div class="eyebrow">Views in 30 days</div><p data-total-recent>—</p></article>
+      <article class="metric-card"><div class="eyebrow">Approved comments</div><p data-total-comments>—</p></article>
+      <article class="metric-card"><div class="eyebrow">Awaiting approval</div><p data-total-pending>—</p></article>
+    </div>
+    <div class="section-head dashboard-list-heading"><div><div class="eyebrow">Article activity</div><h2>Engagement by article.</h2></div><a class="text-link" href="moderation.html">Review comments →</a></div>
+    <div class="dashboard-article-list" data-dashboard-list></div>
+    <p class="empty-state" data-dashboard-empty hidden>No article activity is recorded yet.</p>
+  </div>
+  <p><a class="text-link" href="research/index.html">Return to the writing archive →</a></p>
+</section></main>
+<footer class="site-footer"><div class="wrap footer-inner"><span>Mulki Husein · Publishing dashboard</span><div class="footer-links"><a href="research/index.html">Writing</a><a href="moderation.html">Moderation</a><a href="index.html">Home</a></div></div></footer>
+</body></html>

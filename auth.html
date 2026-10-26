@@ -46,6 +46,14 @@
     </form>
     <div data-signed-in hidden class="signed-in-panel">
       <h2>You’re signed in</h2><p data-current-user></p>
+      <form class="community-form compact-form" data-profile-form>
+        <h3>Your reader profile</h3>
+        <p class="muted">Your display name appears beside comments. Your short bio stays private to your account.</p>
+        <label>Display name <input type="text" name="display_name" required minlength="1" maxlength="80" autocomplete="nickname"></label>
+        <label>Short bio <textarea name="bio" maxlength="240" rows="3" placeholder="A little about your interests (optional)"></textarea></label>
+        <button class="button secondary" type="submit">Save profile</button>
+      </form>
+      <p><a class="text-link" href="dashboard.html">Open the publishing dashboard →</a></p>
       <button class="button secondary" type="button" data-sign-out>Sign out</button>
       <a class="text-link" href="research/index.html">Return to the research archive →</a>
     </div>

@@ -9,7 +9,7 @@
 
   if (!config?.url || !config?.anonKey || !window.supabase?.createClient) {
     statusNodes.forEach(node => setStatus(node, "Community features need a Supabase project URL and public key. See the setup steps in README.md.", "setup"));
-    document.querySelectorAll("[data-community-form] button, [data-auth-form] button").forEach(button => { button.disabled = true; });
+    document.querySelectorAll("[data-community-form] button, [data-auth-form] button, [data-profile-form] button, [data-dashboard] button").forEach(button => { button.disabled = true; });
     return;
   }
 
@@ -21,6 +21,10 @@
   document.querySelectorAll("[data-comments]").forEach(section => setupComments(client, section));
   const moderation = document.querySelector("[data-moderation]");
   if (moderation) setupModeration(client, moderation);
+  const dashboard = document.querySelector("[data-dashboard]");
+  if (dashboard) setupDashboard(client, dashboard);
+  const articleView = document.querySelector("[data-article-view]");
+  if (articleView) recordArticleView(client, articleView.dataset.articleSlug);
 
   function setupAuth(supabaseClient, root) {
     const message = root.querySelector("[data-supabase-status]");
@@ -30,11 +34,16 @@
     const signOut = root.querySelector("[data-sign-out]");
     const resetForm = root.querySelector("[data-reset-form]");
     const resetPasswordForm = root.querySelector("[data-new-password-form]");
+    const profileForm = root.querySelector("[data-profile-form]");
 
     const displaySession = session => {
       root.dataset.session = session ? "signed-in" : "signed-out";
       if (signedIn) signedIn.hidden = !session;
-      if (userLabel) userLabel.textContent = session?.user?.email || "";
+      if (userLabel) userLabel.textContent = session ? `Signed in as ${session.user.user_metadata?.display_name || session.user.email}` : "";
+      if (profileForm && session) {
+        profileForm.elements.display_name.value = session.user.user_metadata?.display_name || "";
+        profileForm.elements.bio.value = session.user.user_metadata?.bio || "";
+      }
     };
     supabaseClient.auth.getSession().then(({ data, error }) => {
       if (error) setStatus(message, error.message, "error");
@@ -74,6 +83,25 @@
         setStatus(message, error.message || "Could not reach Supabase.", "error");
       } finally {
         submit.disabled = false;
+      }
+    });
+
+    profileForm?.addEventListener("submit", async event => {
+      event.preventDefault();
+      const submit = profileForm.querySelector('button[type="submit"]');
+      const displayName = profileForm.elements.display_name.value.trim();
+      const bio = profileForm.elements.bio.value.trim();
+      if (!displayName) {
+        setStatus(message, "Add a display name before saving your profile.", "error");
+        return;
+      }
+      submit.disabled = true;
+      const { data, error } = await supabaseClient.auth.updateUser({ data: { display_name: displayName, bio } });
+      submit.disabled = false;
+      if (error) setStatus(message, "Your profile could not be saved. Please try again.", "error");
+      else {
+        displaySession(data.user ? { user: data.user } : null);
+        setStatus(message, "Your profile has been saved.", "success");
       }
     });
 
@@ -235,5 +263,85 @@
     }
     supabaseClient.auth.onAuthStateChange(() => loadQueue());
     loadQueue();
+  }
+
+  function recordArticleView(supabaseClient, slug) {
+    if (!/^[a-z0-9-]{1,100}$/.test(slug || "")) return;
+    const key = `futuresignal:viewed:${slug}`;
+    try {
+      if (sessionStorage.getItem(key)) return;
+      sessionStorage.setItem(key, "1");
+    } catch (_) {
+      // Private browsing settings can disable session storage; the page remains usable.
+    }
+    supabaseClient.rpc("record_article_view", { p_article_slug: slug }).then(({ error }) => {
+      if (error) console.info("Article view metrics are unavailable until the Supabase schema is configured.");
+    });
+  }
+
+  function setupDashboard(supabaseClient, root) {
+    const message = root.querySelector("[data-supabase-status]");
+    const summary = root.querySelector("[data-dashboard-summary]");
+    const list = root.querySelector("[data-dashboard-list]");
+    const empty = root.querySelector("[data-dashboard-empty]");
+    const refresh = root.querySelector("[data-dashboard-refresh]");
+    const totals = {
+      views: root.querySelector("[data-total-views]"),
+      comments: root.querySelector("[data-total-comments]"),
+      pending: root.querySelector("[data-total-pending]"),
+      recent: root.querySelector("[data-total-recent]")
+    };
+
+    async function loadDashboard() {
+      refresh.disabled = true;
+      list.replaceChildren();
+      const { data: userData, error: userError } = await supabaseClient.auth.getUser();
+      if (userError || !userData?.user) {
+        summary.hidden = true;
+        setStatus(message, "Sign in with the site owner account to view publishing analytics.", "info");
+        refresh.disabled = false;
+        return;
+      }
+      const { data: moderator, error: moderatorError } = await supabaseClient.rpc("is_site_moderator");
+      if (moderatorError || moderator !== true) {
+        summary.hidden = true;
+        setStatus(message, "This dashboard is limited to the site owner and moderators.", "error");
+        refresh.disabled = false;
+        return;
+      }
+      const { data, error } = await supabaseClient.rpc("get_site_analytics");
+      if (error) {
+        summary.hidden = true;
+        setStatus(message, "Analytics could not load. Apply the latest supabase/schema.sql setup first.", "error");
+        refresh.disabled = false;
+        return;
+      }
+      const rows = data || [];
+      summary.hidden = false;
+      totals.views.textContent = rows.reduce((sum, row) => sum + Number(row.total_views || 0), 0).toLocaleString();
+      totals.comments.textContent = rows.reduce((sum, row) => sum + Number(row.approved_comments || 0), 0).toLocaleString();
+      totals.pending.textContent = rows.reduce((sum, row) => sum + Number(row.pending_comments || 0), 0).toLocaleString();
+      totals.recent.textContent = rows.reduce((sum, row) => sum + Number(row.views_30_days || 0), 0).toLocaleString();
+      empty.hidden = rows.length > 0;
+      rows.forEach(row => {
+        const card = document.createElement("article");
+        card.className = "dashboard-article-card";
+        const title = document.createElement("h3");
+        title.textContent = row.article_slug.replaceAll("-", " ");
+        const stats = document.createElement("p");
+        stats.className = "muted";
+        stats.textContent = `${Number(row.total_views).toLocaleString()} views · ${Number(row.views_30_days).toLocaleString()} in 30 days · ${Number(row.approved_comments).toLocaleString()} approved comments · ${Number(row.pending_comments).toLocaleString()} pending`;
+        const link = document.createElement("a");
+        link.className = "read-link";
+        link.href = `articles/${encodeURIComponent(row.article_slug)}.html`;
+        link.textContent = "Open article →";
+        card.append(title, stats, link);
+        list.append(card);
+      });
+      setStatus(message, "Analytics updated. Views are anonymous daily totals; no visitor profiles or IP addresses are stored.", "success");
+      refresh.disabled = false;
+    }
+    refresh?.addEventListener("click", loadDashboard);
+    loadDashboard();
   }
 })();

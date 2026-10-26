@@ -9,11 +9,12 @@ Personal software engineering portfolio and interactive research publication for
 - `research/index.html` — selected publications and research contributions
 - `articles/` — three starter research articles with moderated comment sections
 - `auth.html`, `moderation.html` — account and moderator pages
+- `dashboard.html` — moderator-only aggregate article and comment analytics
 - `supabase/schema.sql` — database schema, row-level policies, and comment moderation rules
 - `assets/js/community.js`, `assets/js/supabase-config.js` — browser community features and public Supabase configuration
 - `projects/index.html` — software and technical project portfolio
 - `assets/css/styles.css` — shared visual system and responsive layout
-- `assets/js/main.js` — mobile navigation and archive filtering
+- `assets/js/main.js` — mobile navigation plus live search and category filters for the writing archive
 - `404.html`, `robots.txt` — basic site support files
 
 All links are relative to the current page. This lets the same files work at `/` or `/RepositoryName/` without a build step or path configuration.
@@ -55,17 +56,15 @@ The static site uses Supabase Auth and Postgres. The repository contains placeho
 
 6. Sign in at `auth.html`, then open `moderation.html`. New comments are held as pending, and only approved comments appear publicly. You can approve or reject them from the moderation queue.
 
-Row-level security is enabled on both tables. The browser can read approved comments and a signed-in author’s own pending comments; only moderator accounts can see the full queue or change comment status. Display names are derived from the authenticated account, comment text is rendered as text, and the database rejects overlong or rapid repeated submissions.
+Row-level security is enabled on community tables. The browser can read approved comments and a signed-in author's own pending comments; only moderator accounts can see the full queue or change comment status. Readers can edit a display name and private account bio from their signed-in panel. Display names are derived from authenticated account metadata, comment text is rendered as text, and the database rejects overlong or rapid repeated submissions.
+
+The publishing dashboard is available at `dashboard.html` to moderator accounts only. It reports aggregate article views and comment counts. View data is stored as daily totals without IP addresses or visitor identifiers; the browser counts at most one view per article per tab session. The `article_daily_views` table has no direct public or client access; the dashboard uses a moderator-checked database function. Counts are indicative and can be affected by automated traffic.
 
 The three previously published works in the research archive link to their original publisher pages. Their full text is not copied into this repository. The submitted articles can be added as full FutureSignal pages when you provide the manuscript text and confirm it may be republished.
 
 ## Publish with GitHub Pages
 
-The site is in `mohusein/FutureSignal` on the `main` branch. GitHub Pages deployment has not been configured or verified, so the live URL and domain are not confirmed.
-
-The repository is currently private. GitHub Free includes Pages for public repositories; publishing the site from this private repository requires an eligible paid plan. Making the repository public also makes its source code public, so keep its current visibility unless you choose otherwise.
-
-To deploy, open **Settings → Pages** and select **Deploy from a branch**, `main`, and `/ (root)`. Wait for deployment, then use the URL shown there to verify the homepage, CSS, JavaScript, navigation, article links, and 404 page. Add canonical URLs, a sitemap with absolute URLs, and matching Open Graph metadata only after confirming the live URL.
+The site is published from the `main` branch of `mohusein/FutureSignal` at [https://mohusein.github.io/FutureSignal/](https://mohusein.github.io/FutureSignal/). GitHub Pages serves the static files. Supabase remains a separate setup step for account, comment, and dashboard data.
 
 GitHub Pages project sites use a repository subpath, so keep links relative as they are now. Do not publish a guessed `USERNAME.github.io` URL or sitemap.
 
