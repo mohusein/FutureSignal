@@ -27,8 +27,8 @@ returns boolean
 language sql
 stable
 security definer
-set search_path = public
-as $$
+set search_path = ''
+as $
   select exists (
     select 1 from public.site_moderators
     where user_id = (select auth.uid())
@@ -42,8 +42,8 @@ create or replace function public.prepare_article_comment()
 returns trigger
 language plpgsql
 security definer
-set search_path = public, auth
-as $$
+set search_path = ''
+as $
 declare
   account_name text;
 begin
