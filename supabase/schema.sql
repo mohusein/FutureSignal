@@ -206,3 +206,99 @@ $$;
 
 revoke all on function public.get_site_analytics() from public;
 grant execute on function public.get_site_analytics() to authenticated;
+
+
+-- Reader engagement. Only each user's own reaction/bookmark rows are readable;
+-- public reaction totals are exposed through an aggregate-only RPC.
+create table if not exists public.article_reactions (
+  user_id uuid not null references auth.users(id) on delete cascade,
+  article_slug text not null check (article_slug in (
+    'ai-software-engineering', 'how-websites-work', 'quantum-computing'
+  )),
+  reaction_type text not null check (reaction_type in ('helpful', 'insightful', 'thought-provoking')),
+  created_at timestamptz not null default now(),
+  primary key (user_id, article_slug, reaction_type)
+);
+
+create table if not exists public.article_bookmarks (
+  user_id uuid not null references auth.users(id) on delete cascade,
+  article_slug text not null check (article_slug in (
+    'ai-software-engineering', 'how-websites-work', 'quantum-computing'
+  )),
+  created_at timestamptz not null default now(),
+  primary key (user_id, article_slug)
+);
+
+alter table public.article_reactions enable row level security;
+alter table public.article_bookmarks enable row level security;
+
+drop policy if exists "read own article reactions" on public.article_reactions;
+create policy "read own article reactions" on public.article_reactions
+  for select to authenticated using (user_id = (select auth.uid()));
+drop policy if exists "read own article bookmarks" on public.article_bookmarks;
+create policy "read own article bookmarks" on public.article_bookmarks
+  for select to authenticated using (user_id = (select auth.uid()));
+drop policy if exists "save own article bookmarks" on public.article_bookmarks;
+create policy "save own article bookmarks" on public.article_bookmarks
+  for insert to authenticated with check (user_id = (select auth.uid()));
+drop policy if exists "remove own article bookmarks" on public.article_bookmarks;
+create policy "remove own article bookmarks" on public.article_bookmarks
+  for delete to authenticated using (user_id = (select auth.uid()));
+
+revoke all on public.article_reactions, public.article_bookmarks from anon, authenticated;
+grant select on public.article_reactions to authenticated;
+grant select, insert, delete on public.article_bookmarks to authenticated;
+
+create or replace function public.get_article_reaction_counts(p_article_slug text)
+returns table (reaction_type text, total_reactions bigint)
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select kinds.kind, count(r.user_id)::bigint
+  from (values ('helpful'::text), ('insightful'::text), ('thought-provoking'::text)) as kinds(kind)
+  left join public.article_reactions r
+    on r.reaction_type = kinds.kind and r.article_slug = p_article_slug
+  group by kinds.kind
+  order by kinds.kind;
+$$;
+
+revoke all on function public.get_article_reaction_counts(text) from public;
+grant execute on function public.get_article_reaction_counts(text) to anon, authenticated;
+
+create or replace function public.toggle_article_reaction(p_article_slug text, p_reaction_type text)
+returns boolean
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  removed_rows bigint;
+begin
+  if auth.uid() is null then
+    raise exception 'Sign in to react to an article';
+  end if;
+  if p_article_slug not in ('ai-software-engineering', 'how-websites-work', 'quantum-computing')
+     or p_reaction_type not in ('helpful', 'insightful', 'thought-provoking') then
+    raise exception 'Invalid article reaction';
+  end if;
+
+  delete from public.article_reactions
+  where user_id = auth.uid()
+    and article_slug = p_article_slug
+    and reaction_type = p_reaction_type;
+  get diagnostics removed_rows = row_count;
+  if removed_rows > 0 then
+    return false;
+  end if;
+
+  insert into public.article_reactions (user_id, article_slug, reaction_type)
+  values (auth.uid(), p_article_slug, p_reaction_type)
+  on conflict do nothing;
+  return true;
+end;
+$$;
+
+revoke all on function public.toggle_article_reaction(text, text) from public;
+grant execute on function public.toggle_article_reaction(text, text) to authenticated;

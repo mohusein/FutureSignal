@@ -1,6 +1,6 @@
 (() => {
   const config = window.FUTURESIGNAL_SUPABASE;
-  const statusNodes = [...document.querySelectorAll("[data-supabase-status]")];
+  const statusNodes = [...document.querySelectorAll("[data-supabase-status], [data-engagement-status], [data-reading-list-status]")];
   const setStatus = (node, message, kind = "info") => {
     if (!node) return;
     node.textContent = message;
@@ -9,7 +9,7 @@
 
   if (!config?.url || !config?.anonKey || !window.supabase?.createClient) {
     statusNodes.forEach(node => setStatus(node, "Community features need a Supabase project URL and public key. See the setup steps in README.md.", "setup"));
-    document.querySelectorAll("[data-community-form] button, [data-auth-form] button, [data-profile-form] button, [data-dashboard] button").forEach(button => { button.disabled = true; });
+    document.querySelectorAll("[data-community-form] button, [data-auth-form] button, [data-profile-form] button, [data-dashboard] button, [data-engagement] button, [data-reading-list] button").forEach(button => { button.disabled = true; });
     return;
   }
 
@@ -25,6 +25,10 @@
   if (dashboard) setupDashboard(client, dashboard);
   const articleView = document.querySelector("[data-article-view]");
   if (articleView) recordArticleView(client, articleView.dataset.articleSlug);
+  const engagement = document.querySelector("[data-engagement]");
+  if (engagement) setupEngagement(client, engagement);
+  const readingList = document.querySelector("[data-reading-list]");
+  if (readingList) setupReadingList(client, readingList);
 
   function setupAuth(supabaseClient, root) {
     const message = root.querySelector("[data-supabase-status]");
@@ -343,5 +347,161 @@
     }
     refresh?.addEventListener("click", loadDashboard);
     loadDashboard();
+  }
+
+  const articleTitles = {
+    "ai-software-engineering": "How AI is changing the work of software engineering",
+    "how-websites-work": "How a website gets from a server to your screen",
+    "quantum-computing": "Quantum computing beyond classical limits"
+  };
+
+  function setupEngagement(supabaseClient, root) {
+    const slug = root.dataset.articleSlug;
+    const message = root.querySelector("[data-engagement-status]");
+    const signedOut = root.querySelector("[data-engagement-signed-out]");
+    const reactionButtons = [...root.querySelectorAll("[data-reaction]")];
+    const bookmark = root.querySelector("[data-bookmark-toggle]");
+    let user = null;
+    if (!slug || !articleTitles[slug]) return;
+
+    async function refresh() {
+      const [{ data: userData }, countsResult] = await Promise.all([
+        supabaseClient.auth.getUser(),
+        supabaseClient.rpc("get_article_reaction_counts", { p_article_slug: slug })
+      ]);
+      user = userData?.user || null;
+      if (signedOut) signedOut.hidden = Boolean(user);
+      if (countsResult.error) {
+        setStatus(message, "Reader reactions need the latest Supabase setup.", "setup");
+        return;
+      }
+      const counts = new Map((countsResult.data || []).map(item => [item.reaction_type, Number(item.total_reactions || 0)]));
+      reactionButtons.forEach(button => {
+        const kind = button.dataset.reaction;
+        const count = button.querySelector("[data-reaction-count]");
+        if (count) count.textContent = (counts.get(kind) || 0).toLocaleString();
+        button.setAttribute("aria-pressed", "false");
+      });
+      if (!user) {
+        bookmark.setAttribute("aria-pressed", "false");
+        bookmark.textContent = "Save to reading list";
+        setStatus(message, "Reactions are public totals. Sign in to react or save this article.", "info");
+        return;
+      }
+      const [reactions, saved] = await Promise.all([
+        supabaseClient.from("article_reactions").select("reaction_type").eq("article_slug", slug),
+        supabaseClient.from("article_bookmarks").select("article_slug").eq("article_slug", slug).maybeSingle()
+      ]);
+      if (reactions.error || saved.error) {
+        setStatus(message, "Your saved reactions need the latest Supabase schema.", "setup");
+        return;
+      }
+      (reactions.data || []).forEach(item => {
+        const button = reactionButtons.find(candidate => candidate.dataset.reaction === item.reaction_type);
+        button?.setAttribute("aria-pressed", "true");
+      });
+      const isSaved = Boolean(saved.data);
+      bookmark.setAttribute("aria-pressed", String(isSaved));
+      bookmark.textContent = isSaved ? "Remove from reading list" : "Save to reading list";
+      setStatus(message, "Your reactions and reading list are saved to your account.", "success");
+    }
+
+    reactionButtons.forEach(button => button.addEventListener("click", async () => {
+      if (!user) {
+        setStatus(message, "Sign in to leave a reaction. Use the sign-in link below.", "info");
+        return;
+      }
+      reactionButtons.forEach(item => { item.disabled = true; });
+      const { error } = await supabaseClient.rpc("toggle_article_reaction", {
+        p_article_slug: slug,
+        p_reaction_type: button.dataset.reaction
+      });
+      reactionButtons.forEach(item => { item.disabled = false; });
+      if (error) setStatus(message, "Your reaction could not be saved. Please try again.", "error");
+      else await refresh();
+    }));
+
+    bookmark.addEventListener("click", async () => {
+      if (!user) {
+        setStatus(message, "Sign in to save this article to your reading list.", "info");
+        return;
+      }
+      bookmark.disabled = true;
+      const exists = bookmark.getAttribute("aria-pressed") === "true";
+      const request = exists
+        ? supabaseClient.from("article_bookmarks").delete().eq("article_slug", slug).eq("user_id", user.id)
+        : supabaseClient.from("article_bookmarks").insert({ article_slug: slug, user_id: user.id });
+      const { error } = await request;
+      bookmark.disabled = false;
+      if (error) setStatus(message, "Your reading list could not be updated. Please try again.", "error");
+      else await refresh();
+    });
+
+    supabaseClient.auth.onAuthStateChange(() => { refresh(); });
+    refresh();
+  }
+
+  function setupReadingList(supabaseClient, root) {
+    const message = root.querySelector("[data-reading-list-status]");
+    const list = root.querySelector("[data-reading-list-items]");
+    const signedOut = root.querySelector("[data-reading-list-signed-out]");
+
+    async function render() {
+      list.replaceChildren();
+      const { data: userData } = await supabaseClient.auth.getUser();
+      const user = userData?.user;
+      if (signedOut) signedOut.hidden = Boolean(user);
+      if (!user) {
+        setStatus(message, "Sign in to see articles you have saved.", "info");
+        return;
+      }
+      const { data, error } = await supabaseClient.from("article_bookmarks")
+        .select("article_slug, created_at").order("created_at", { ascending: false });
+      if (error) {
+        setStatus(message, "Your reading list could not load. Check the Supabase schema setup.", "error");
+        return;
+      }
+      const saved = (data || []).filter(item => articleTitles[item.article_slug]);
+      if (!saved.length) {
+        setStatus(message, "Your reading list is empty. Save an article to keep it here.", "info");
+        return;
+      }
+      setStatus(message, `${saved.length} saved ${saved.length === 1 ? "article" : "articles"}.`, "success");
+      saved.forEach(item => {
+        const card = document.createElement("article");
+        card.className = "dashboard-article-card reading-list-card";
+        const title = document.createElement("h2");
+        title.textContent = articleTitles[item.article_slug];
+        const date = document.createElement("p");
+        date.className = "muted";
+        date.textContent = `Saved ${new Date(item.created_at).toLocaleDateString()}`;
+        const actions = document.createElement("div");
+        actions.className = "reading-list-actions";
+        const open = document.createElement("a");
+        open.className = "read-link";
+        open.href = `articles/${encodeURIComponent(item.article_slug)}.html`;
+        open.textContent = "Read article →";
+        const remove = document.createElement("button");
+        remove.className = "button secondary";
+        remove.type = "button";
+        remove.textContent = "Remove";
+        remove.addEventListener("click", async () => {
+          remove.disabled = true;
+          const { error: deleteError } = await supabaseClient.from("article_bookmarks")
+            .delete().eq("article_slug", item.article_slug).eq("user_id", user.id);
+          if (deleteError) {
+            remove.disabled = false;
+            setStatus(message, "That article could not be removed. Please try again.", "error");
+          } else {
+            await render();
+          }
+        });
+        actions.append(open, remove);
+        card.append(title, date, actions);
+        list.append(card);
+      });
+    }
+    supabaseClient.auth.onAuthStateChange(() => { render(); });
+    render();
   }
 })();
