@@ -1,17 +1,17 @@
 # FutureSignal
 
-Personal website and a dependency-free, multipage technology research publication built with HTML, CSS, and a small amount of JavaScript. The static structure keeps the project easy to inspect and suitable for GitHub Pages at either a user-site root or a project-site subpath.
+Personal software engineering portfolio and interactive research publication for Mulki Husein, built with HTML, CSS, and JavaScript. It highlights her software projects, IT experience, research, education, and transition into software engineering. The static structure keeps the project easy to inspect and suitable for GitHub Pages at either a user-site root or a project-site subpath.
 
 ## Structure
 
-- `index.html` — publication homepage
-- `about.html` — mission and editorial method
-- `research/index.html` — searchable, category-filterable article archive
+- `index.html` — Mulki Husein’s portfolio homepage
+- `about.html` — career direction, experience, education, and recognition
+- `research/index.html` — selected publications and research contributions
 - `articles/` — three starter research articles with moderated comment sections
 - `auth.html`, `moderation.html` — account and moderator pages
 - `supabase/schema.sql` — database schema, row-level policies, and comment moderation rules
 - `assets/js/community.js`, `assets/js/supabase-config.js` — browser community features and public Supabase configuration
-- `projects/index.html` — project notebook with carefully scoped descriptions
+- `projects/index.html` — software and technical project portfolio
 - `assets/css/styles.css` — shared visual system and responsive layout
 - `assets/js/main.js` — mobile navigation and archive filtering
 - `404.html`, `robots.txt` — basic site support files
