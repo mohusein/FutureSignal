@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Comment moderation — FutureSignal</title>
+  <meta name="description" content="Review reader comments awaiting approval.">
+  <link rel="stylesheet" href="assets/css/styles.css">
+  <script src="assets/js/main.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+  <script src="assets/js/supabase-config.js" defer></script>
+  <script src="assets/js/community.js" defer></script>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site-header"><div class="wrap header-inner"><a class="brand" href="index.html"><span class="brand-mark">FS</span>Future<span>Signal</span></a><button class="menu-toggle" aria-expanded="false" aria-controls="primary-nav">Menu</button><nav class="nav" id="primary-nav" aria-label="Main navigation"><a href="research/index.html">Research</a><a href="projects/index.html">Projects</a><a href="about.html">About</a><a href="auth.html">Sign in</a></nav></div></header>
+<main id="main" class="section"><section class="wrap" data-moderation>
+  <div class="eyebrow">Site owner tools</div><h1 class="page-title">Comment moderation</h1>
+  <p>Only accounts added to the Supabase <code>site_moderators</code> table can read or act on this queue.</p>
+  <p class="status-message" data-supabase-status role="status" aria-live="polite">Connecting to the community service…</p>
+  <p data-moderation-empty hidden>No comments are waiting for approval.</p>
+  <div class="moderation-list" data-pending-list></div>
+  <p><a class="text-link" href="auth.html">Sign in or switch accounts →</a></p>
+</section></main>
+<footer class="site-footer"><div class="wrap footer-inner"><span>© FutureSignal · Comment moderation.</span><div class="footer-links"><a href="research/index.html">Research</a><a href="auth.html">Sign in</a><a href="index.html">Home</a></div></div></footer>
+</body></html>
