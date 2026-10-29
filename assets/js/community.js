@@ -8,7 +8,7 @@
   };
 
   if (!config?.url || !config?.anonKey || !window.supabase?.createClient) {
-    statusNodes.forEach(node => setStatus(node, "Community features need a Supabase project URL and public key. See the setup steps in README.md.", "setup"));
+    statusNodes.forEach(node => { node.textContent = ""; node.hidden = true; });
     document.querySelectorAll("[data-community-form] button, [data-auth-form] button, [data-profile-form] button, [data-dashboard] button, [data-engagement] button, [data-reading-list] button").forEach(button => { button.disabled = true; });
     return;
   }
